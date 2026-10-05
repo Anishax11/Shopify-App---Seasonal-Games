@@ -8,6 +8,7 @@ import { useFetcher } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
+import { Link } from "react-router";
 import NewCampaign from "./app.campaigns.new";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -184,14 +185,12 @@ export default function Index() {
 
         <s-stack direction="inline" gap="base">
         <s-badge tone="success">Active</s-badge>
-
-        <s-button variant="primary">
-        <s-link href="https://reactrouter.com/" target="_blank">
-        Create Campaign
-        </s-link>
-        
-      </s-button>
-      </s-stack>
+        <Link to="/app/campaigns/new">
+          <s-button variant="primary">
+            Create Campaign
+          </s-button>
+        </Link>
+        </s-stack>
       </s-section>
     </s-section>
 
