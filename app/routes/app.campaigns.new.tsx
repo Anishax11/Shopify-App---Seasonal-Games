@@ -1,8 +1,39 @@
 import { useEffect, useState } from "react";
+import { Form } from "react-router";
+import type { ActionFunctionArgs } from "react-router";
+import { authenticate } from "../shopify.server";
+import prisma from "../db.server";
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const { session } = await authenticate.admin(request);
+
+  const formData = await request.formData();
+  console.log(Object.fromEntries(formData));
+
+  const name = formData.get("name");
+  const game = formData.get("game");
+  const theme = formData.get("theme");
+  const placement = formData.get("placement");
+  const status = formData.get("status");
+  const rewardCount = Number(formData.get("rewardCount"));
+
+  await prisma.campaign.create({
+    data: {
+      shop: session.shop,
+      name: String(name),
+      game: String(game),
+      theme: String(theme),
+      placement: String(placement),
+      status: String(status),
+      rewardCount,
+    },
+  });
+
+  return { success: true };
+};
 
 export default function NewCampaign() {
   const [game, setGame] = useState("spin");
-  
   const [rewardCount, setRewardCount] = useState(3);
   const [rewards, setRewards] = useState(["", "", ""]);
   useEffect(() => {
@@ -27,83 +58,96 @@ export default function NewCampaign() {
   return (
     
     <s-page heading="Create Campaign">
-      <s-section heading="Campaign Details">
-        <s-stack direction="block" gap="base">
+      <Form method="post">
+        <s-section heading="Campaign Details">
+          <s-stack direction="block" gap="base">
           <s-text-field
             label="Campaign name"
+            name="name"
             placeholder="e.g. Halloween Mystery Pumpkin"
           />
 
-        <s-select
-          label="Game"
-          value={game}
-          onChange={(event) => setGame(event.currentTarget.value)}
-        >
-          <s-option value="spin">Spin the Wheel</s-option>
-          <s-option value="scratch">Scratch Card</s-option>
-          <s-option value="mystery">Mystery Box</s-option>
-          <s-option value="quiz">Quiz</s-option>
-        </s-select>
+            <s-select
+              label="Game"
+              name="game"
+              value={game}
+              onChange={(event) => setGame(event.currentTarget.value)}
+            >
+            <s-option value="spin">Spin the Wheel</s-option>
+            <s-option value="scratch">Scratch Card</s-option>
+            <s-option value="mystery">Mystery Box</s-option>
+            <s-option value="quiz">Quiz</s-option>
+            </s-select>
 
-          <s-select label="Theme">
-            <s-option value="none">No Theme</s-option>
-            <s-option value="halloween">🎃 Halloween</s-option>
-            <s-option value="christmas">🎄 Christmas</s-option>
-            <s-option value="diwali">🪔 Diwali</s-option>
-            <s-option value="valentines">💗 Valentine's Day</s-option>
-            <s-option value="black-friday">🛍️ Black Friday</s-option>
-            <s-option value="new-year">🎉 New Year</s-option>
-            <s-option value="summer">☀️ Summer Sale</s-option>
+            <s-select label="Theme" name="theme">
+              <s-option value="none">No Theme</s-option>
+              <s-option value="halloween">🎃 Halloween</s-option>
+              <s-option value="christmas">🎄 Christmas</s-option>
+              <s-option value="diwali">🪔 Diwali</s-option>
+              <s-option value="valentines">💗 Valentine's Day</s-option>
+              <s-option value="black-friday">🛍️ Black Friday</s-option>
+              <s-option value="new-year">🎉 New Year</s-option>
+              <s-option value="summer">☀️ Summer Sale</s-option>
+            </s-select>
+
+            <s-select
+              label="Number of Rewards"
+              name="rewardCount"
+              value={String(rewardCount)}
+              onChange={(event) =>
+                setRewardCount(Number(event.currentTarget.value))
+              }
+            >
+            {Array.from(
+              {
+                length: currentLimits.max - currentLimits.min + 1,
+              },
+              (_, index) => {
+                const count = currentLimits.min + index;
+
+                return (
+                  <s-option key={count} value={String(count)}>
+                    {count}
+                  </s-option>
+                );
+              },
+            )}
           </s-select>
 
-          <s-select
-          label="Number of Rewards"
-          value={String(rewardCount)}
-          onChange={(event) =>
-            setRewardCount(Number(event.currentTarget.value))
-          }
-        >
-          {Array.from(
-            {
-              length: currentLimits.max - currentLimits.min + 1,
-            },
-            (_, index) => {
-              const count = currentLimits.min + index;
+          <s-section heading="Reward Outcomes">
+          <s-stack direction="block" gap="base">
+            {rewards.slice(0, rewardCount).map((reward, index) => (
+              <s-text-field
+                key={index}
+                label={`Reward ${index + 1}`}
+                value={reward}
+              />
+            ))}
+            
+          </s-stack>
+          </s-section>
 
-              return (
-                <s-option key={count} value={String(count)}>
-                  {count}
-                </s-option>
-              );
-            },
-          )}
-        </s-select>
+            <s-select label="Placement" name="placement">
+                <s-option value="popup">Storefront Popup</s-option>
+                <s-option value="banner">Storefront Banner</s-option>
+                <s-option value="inline">Inline on Storefront</s-option>
+              </s-select>
+              <s-select label="Status" name ="status">
+              <s-option value="draft">Draft</s-option>
+              <s-option value="active">Active</s-option>
+            </s-select>
+            </s-stack>
 
-        <s-section heading="Reward Outcomes">
-        <s-stack direction="block" gap="base">
-          {rewards.slice(0, rewardCount).map((reward, index) => (
-            <s-text-field
-              key={index}
-              label={`Reward ${index + 1}`}
-              value={reward}
-            />
-          ))}
-        </s-stack>
-      </s-section>
+            
+          </s-section>
 
-          <s-select label="Placement">
-            <s-option value="popup">Storefront Popup</s-option>
-            <s-option value="banner">Storefront Banner</s-option>
-            <s-option value="inline">Inline on Storefront</s-option>
-          </s-select>
-        </s-stack>
-      </s-section>
 
-      <s-section>
-        <s-button variant="primary">
+        <s-section>
+        <s-button type="submit" variant="primary">
           Create Campaign
         </s-button>
-      </s-section>
+        </s-section>
+      </Form>
     </s-page>
   );
 }

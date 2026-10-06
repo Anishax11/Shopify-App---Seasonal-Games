@@ -32,3 +32,16 @@ model Session {
   refreshToken        String?
   refreshTokenExpires DateTime?
 }
+
+model Campaign {
+  id          String   @id @default(cuid())
+  shop        String
+  name        String
+  game        String
+  theme       String
+  placement   String
+  status      String
+  rewardCount Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
