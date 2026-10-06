@@ -8,8 +8,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const { session } = await authenticate.admin(request);
 
   const formData = await request.formData();
-  console.log(Object.fromEntries(formData));
-
   const name = formData.get("name");
   const game = formData.get("game");
   const theme = formData.get("theme");
@@ -17,7 +15,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const status = formData.get("status");
   const rewardCount = Number(formData.get("rewardCount"));
 
-  await prisma.campaign.create({
+  const campaign = await prisma.campaign.create({
     data: {
       shop: session.shop,
       name: String(name),
@@ -29,7 +27,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     },
   });
 
-  return { success: true };
+  return { success: true, campaign };
 };
 
 export default function NewCampaign() {

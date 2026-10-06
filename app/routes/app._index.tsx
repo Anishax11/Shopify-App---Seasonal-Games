@@ -4,17 +4,27 @@ import type {
   HeadersFunction,
   LoaderFunctionArgs,
 } from "react-router";
-import { useFetcher } from "react-router";
+import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
+import prisma from "../db.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { Link } from "react-router";
 import NewCampaign from "./app.campaigns.new";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
 
-  return null;
+  const campaigns = await prisma.campaign.findMany({
+    where: {
+      shop: session.shop,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return { campaigns };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -131,6 +141,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 export default function Index() {
   const fetcher = useFetcher<typeof action>();
+  const { campaigns } = useLoaderData<typeof loader>();
 
   const shopify = useAppBridge();
   const isLoading =
@@ -159,110 +170,56 @@ export default function Index() {
       </s-paragraph>
       </s-section>
       <s-section heading="Your Campaigns">
-      <s-paragraph>
-        Create interactive campaigns that turn promotions into experiences.
-      </s-paragraph>
-
-      <s-section heading="🎃 Halloween Mystery Pumpkin">
-        <s-paragraph>
-          A Halloween-themed mystery game where customers reveal a surprise
-          reward.
-        </s-paragraph>
         <s-stack direction="block" gap="small">
           <s-paragraph>
-            🎮 Game: Spin the Wheel
+            Create interactive campaigns that turn promotions into experiences.
           </s-paragraph>
-
-          <s-paragraph>
-            🎁 Reward: 15% OFF
-          </s-paragraph>
-
-          <s-paragraph>
-            📍 Placement: Storefront popup
-            
-          </s-paragraph>
+          <Link to="/app/campaigns/new">
+              <s-button variant="primary">
+                Create Campaign
+              </s-button>
+            </Link>
         </s-stack>
-
-        <s-stack direction="inline" gap="base">
-        <s-badge tone="success">Active</s-badge>
-        <Link to="/app/campaigns/new">
-          <s-button variant="primary">
-            Create Campaign
-          </s-button>
-        </Link>
-        </s-stack>
-      </s-section>
+   
     </s-section>
 
-      <s-section slot="aside" heading="App template specs">
+          {campaigns.length === 0 ? (
         <s-paragraph>
-          <s-text>Framework: </s-text>
-          <s-link href="https://reactrouter.com/" target="_blank">
-            React Router
-          </s-link>
+          You don't have any campaigns yet. Create your first campaign to get
+          started.
         </s-paragraph>
-        <s-paragraph>
-          <s-text>Interface: </s-text>
-          <s-link
-            href="https://shopify.dev/docs/api/app-home/using-polaris-components"
-            target="_blank"
-          >
-            Polaris web components
-          </s-link>
-        </s-paragraph>
-        <s-paragraph>
-          <s-text>API: </s-text>
-          <s-link
-            href="https://shopify.dev/docs/api/admin-graphql"
-            target="_blank"
-          >
-            GraphQL
-          </s-link>
-        </s-paragraph>
-        <s-paragraph>
-          <s-text>Custom data: </s-text>
-          <s-link
-            href="https://shopify.dev/docs/apps/build/custom-data"
-            target="_blank"
-          >
-            Metafields &amp; metaobjects
-          </s-link>
-        </s-paragraph>
-        <s-paragraph>
-          <s-text>Database: </s-text>
-          <s-link href="https://www.prisma.io/" target="_blank">
-            Prisma
-          </s-link>
-        </s-paragraph>
-      </s-section>
+      ) : (
+        campaigns.map((campaign) => (
+          <s-section key={campaign.id} heading={campaign.name}>
+            <s-stack direction="block" gap="small">
+              <s-paragraph>
+                🎮 Game: {campaign.game}
+              </s-paragraph>
 
-      <s-section slot="aside" heading="Next steps">
-        <s-unordered-list>
-          <s-list-item>
-            Build an{" "}
-            <s-link
-              href="https://shopify.dev/docs/apps/getting-started/build-app-example"
-              target="_blank"
-            >
-              example app
-            </s-link>
-          </s-list-item>
-          <s-list-item>
-            Explore Shopify&apos;s API with{" "}
-            <s-link
-              href="https://shopify.dev/docs/apps/tools/graphiql-admin-api"
-              target="_blank"
-            >
-              GraphiQL
-            </s-link>
-          </s-list-item>
-        </s-unordered-list>
-      </s-section>
+              <s-paragraph>
+                🎁 Rewards: {campaign.rewardCount}
+              </s-paragraph>
+
+              <s-paragraph>
+                🎨 Theme: {campaign.theme}
+              </s-paragraph>
+
+              <s-paragraph>
+                📍 Placement: {campaign.placement}
+              </s-paragraph>
+
+              <s-badge tone={campaign.status === "active" ? "success" : "info"}>
+                {campaign.status}
+              </s-badge>
+            </s-stack>
+          </s-section>
+        ))
+      )}
     </s-page>
-    
   );
-}
-
+        }     
+      
+ 
 export const headers: HeadersFunction = (headersArgs) => {
   return boundary.headers(headersArgs);
 };
