@@ -91,7 +91,50 @@
       font-size: 16px;
       cursor: pointer;
     }
+
+    .wheel {
+        transition: transform 4s ease-out;
+      }
   </style>
+
+  <script>
+    const wheel = document.querySelector(".wheel");
+    const spinButton = document.querySelector(".spin-button");
+  
+    const rewards = [
+      "10% OFF",
+      "15% OFF",
+      "20% OFF",
+      "FREE SHIPPING",
+      "TRY AGAIN"
+    ];
+    let currentRotation = 0;
+    let spinning = false;
+  
+    spinButton.addEventListener("click", () => {
+        if (spinning) return;
+        spinning = true;
+
+        const randomIndex = 1//Math.floor(Math.random() * rewards.length);
+    
+        const sliceAngle = ( 360 / rewards.length );
+        const extraSpins = 4;
+    
+        const targetAngle =
+            extraSpins * 360 +
+            (360 - randomIndex * sliceAngle - sliceAngle / 2);
+            
+        currentRotation += extraSpins * 360 + targetAngle - 45;
+
+    
+        wheel.style.transform = `rotate(${currentRotation}deg)`;
+    
+        setTimeout(() => {
+            alert(`🎉 You won: ${rewards[randomIndex]}`);
+            spinning = false;
+        }, 4000);
+    });
+  </script>
   
   {% schema %}
   {
