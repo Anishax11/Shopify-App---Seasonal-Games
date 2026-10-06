@@ -14,6 +14,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const placement = formData.get("placement");
   const status = formData.get("status");
   const rewardCount = Number(formData.get("rewardCount"));
+  const rewards = [];
+
+  for (let i = 0; i < rewardCount; i++) {
+    const reward = formData.get(`reward-${i}`);
+
+    if (reward) {
+      rewards.push(String(reward));
+    }
+  }
+  console.log("Rewards received:", rewards);
+  console.log("Form data:", Object.fromEntries(formData));
 
   const campaign = await prisma.campaign.create({
     data: {
@@ -24,6 +35,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       placement: String(placement),
       status: String(status),
       rewardCount,
+  
+      rewards: {
+        create: rewards.map((reward) => ({
+          reward,
+        })),
+      },
     },
   });
 
@@ -33,6 +50,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 export default function NewCampaign() {
   const [game, setGame] = useState("spin");
   const [rewardCount, setRewardCount] = useState(3);
+  
   const [rewards, setRewards] = useState(["", "", ""]);
   useEffect(() => {
     setRewards((currentRewards) => {
@@ -117,8 +135,14 @@ export default function NewCampaign() {
             {rewards.slice(0, rewardCount).map((reward, index) => (
               <s-text-field
                 key={index}
+                name={`reward-${index}`}
                 label={`Reward ${index + 1}`}
                 value={reward}
+                onChange={(event) => {
+                const newRewards = [...rewards];
+                newRewards[index] = event.currentTarget.value;
+                setRewards(newRewards);
+              }}
               />
             ))}
             

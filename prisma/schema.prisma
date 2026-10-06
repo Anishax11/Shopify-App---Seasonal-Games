@@ -44,4 +44,12 @@ model Campaign {
   rewardCount Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  rewards     CampaignReward[]
+}
+
+model CampaignReward {
+  id         String   @id @default(cuid())
+  campaignId String
+  reward     String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 }
