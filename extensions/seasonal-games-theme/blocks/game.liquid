@@ -108,32 +108,33 @@
       "FREE SHIPPING",
       "TRY AGAIN"
     ];
-    let currentRotation = 0;
+    
     let spinning = false;
-  
+     
+
     spinButton.addEventListener("click", () => {
-        if (spinning) return;
-        spinning = true;
+      
+      if (spinning) return;
+      spinning = true;
+      const randomIndex = Math.floor(Math.random() * rewards.length);
+      const sliceAngle = ( 360 / rewards.length );
+      const extraSpins = 4;
+      const targetAngle = ( rewards.length - 2 - randomIndex )*sliceAngle + (sliceAngle/2);
+          
+      currentRotation = extraSpins * 360 + targetAngle;  
+      wheel.style.transition = "transform 4s ease-out";
+      wheel.style.transform = `rotate(${currentRotation}deg)`;
+  
+      setTimeout(() => {
+          alert(`🎉 You won: ${rewards[randomIndex]}`);
+          spinning = false;
+          wheel.style.transition = "none";
+          wheel.style.transform = "rotate(0deg)";
+      }, 4000);
 
-        const randomIndex = 1//Math.floor(Math.random() * rewards.length);
-    
-        const sliceAngle = ( 360 / rewards.length );
-        const extraSpins = 4;
-    
-        const targetAngle =
-            extraSpins * 360 +
-            (360 - randomIndex * sliceAngle - sliceAngle / 2);
-            
-        currentRotation += extraSpins * 360 + targetAngle - 45;
+      
+  });
 
-    
-        wheel.style.transform = `rotate(${currentRotation}deg)`;
-    
-        setTimeout(() => {
-            alert(`🎉 You won: ${rewards[randomIndex]}`);
-            spinning = false;
-        }, 4000);
-    });
   </script>
   
   {% schema %}
