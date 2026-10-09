@@ -43,14 +43,18 @@
     }
   
     .wheel-label {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform-origin: 0 0;
-        font-weight: bold;
-        font-size: 14px;
-      }
-
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 68px;
+      text-align: center;
+      transform-origin: 0 0;
+      font-weight: bold;
+      font-size: 13px;
+      line-height: 1.2;
+      overflow-wrap: break-word;
+      word-break: normal;
+    }
     .pointer {
       position: absolute;
       z-index: 2;
@@ -69,21 +73,98 @@
     .wheel {
         transition: transform 4s ease-out;
       }
+
+      
+    /* Default styling */
+    .seasonal-game {
+      color: #222;
+      background: #fff;
+      border-radius: 16px;
+    }
+
+    .seasonal-game h2 {
+      margin-bottom: 10px;
+    }
+
+    .spin-button {
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      transition: background-color 0.2s ease;
+    }
+
+    /* Halloween */
+    .seasonal-game[data-theme="halloween"] {
+      color: #fff;
+      background: #21152b;
+    }
+
+    .seasonal-game[data-theme="halloween"] .spin-button {
+      color: #fff;
+      background: #ff7518;
+    }
+
+    /* Christmas */
+    .seasonal-game[data-theme="christmas"] {
+      color: #fff;
+      background: #153b2a;
+    }
+
+    .seasonal-game[data-theme="christmas"] .spin-button {
+      color: #fff;
+      background: #c62828;
+    }
+
+    /* Diwali */
+    .seasonal-game[data-theme="diwali"] {
+      color: #4a1535;
+      background: #fff0d1;
+    }
+
+    .seasonal-game[data-theme="diwali"] .spin-button {
+      color: #fff;
+      background: #d81b60;
+    }
+
+    .spin-button:hover {
+      filter: brightness(0.9);
+    }
+
   </style>
 
   <script>
     const wheel = document.querySelector(".wheel");
     const spinButton = document.querySelector(".spin-button");
     let rewards = [];
-    const colors = [
-      "#ff6b6b",
-      "#ffd93d",
-      "#6bcb77",
-      "#4d96ff",
-      "#c77dff",
-      "#ff9f1c"
-    ];
+    const themePalettes = {
+      halloween: [
+        "#ff7518", "#6a0dad", "#222222",
+        "#ffb347", "#9932cc"
+      ],
+      christmas: [
+        "#c62828", "#2e7d32", "#f9a825",
+        "#ffffff", "#8e0000"
+      ],
+      diwali: [
+        "#ff6f00", "#d81b60", "#ffc107",
+        "#6a1b9a", "#f4511e"
+      ]
+    };
+
+    function applyTheme(theme) {
+      const selectedTheme = themePalettes[theme?.toLowerCase()]
+        ? theme.toLowerCase()
+        : "halloween";
+    
+      colors = themePalettes[selectedTheme];
+    
+      document.querySelector(".seasonal-game")
+        .dataset.theme = selectedTheme;
+    }
+    
+    let colors = themePalettes.halloween; //default
     let spinning = false;
+    
     
     async function loadCampaign() {
       try {
@@ -100,6 +181,7 @@
           spinButton.disabled = true;
           return;
         }
+        applyTheme(data.campaign.theme);
     
         rewards = data.campaign.rewards;
         buildWheel();
@@ -139,7 +221,10 @@
       console.log("reward ",reward);
       console.log("angle ",angle);
     
-      label.style.transform = `rotate(${angle}deg) translateX(60px)`;
+      const radius = Math.min(55, 150 * Math.sin(Math.PI / rewards.length) * 0.65);
+
+      label.style.transform =
+        `rotate(${angle}deg) translateX(${radius}px) translateY(-50%)`;
     
       wheel.appendChild(label);
       });
