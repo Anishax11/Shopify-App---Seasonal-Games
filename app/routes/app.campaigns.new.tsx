@@ -23,8 +23,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       rewards.push(String(reward));
     }
   }
-  console.log("Rewards received:", rewards);
-  console.log("Form data:", Object.fromEntries(formData));
 
   const campaign = await prisma.campaign.create({
     data: {
